@@ -970,11 +970,11 @@ section {
 .watermark-row {
   background: linear-gradient(90deg,
     transparent 0%,
-    rgba(167,139,250,0.13) 15%,
-    rgba(124,106,247,0.18) 35%,
-    rgba(74,222,128,0.10) 50%,
-    rgba(124,106,247,0.18) 65%,
-    rgba(167,139,250,0.13) 85%,
+    rgba(167,139,250,0.35) 15%,
+    rgba(124,106,247,0.45) 35%,
+    rgba(74,222,128,0.28) 50%,
+    rgba(124,106,247,0.45) 65%,
+    rgba(167,139,250,0.35) 85%,
     transparent 100%
   );
   -webkit-background-clip: text;
@@ -1111,6 +1111,49 @@ header {
   background-size: auto, 300% 100%;
   animation: border-run 4s linear infinite;
 }
+.budget-card {
+  background: rgba(255,60,60,0.05);
+  border: 1px solid rgba(255,60,60,0.18);
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  text-align: center;
+  min-width: 106px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 1.7rem;
+  transition: all 0.3s;
+}
+.budget-card:hover {
+  background: rgba(255,60,60,0.12);
+  transform: scale(1.06) translateY(-3px);
+  box-shadow: 0 0 22px rgba(255,60,60,0.2);
+}
+.budget-card span {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 1.1rem;
+  font-weight: 900;
+  color: #ff6666;
+  text-shadow: 0 0 12px rgba(255,100,100,0.4);
+}
+.budget-card small {
+  font-size: 0.58rem;
+  color: rgba(255,255,255,0.4);
+  letter-spacing: 0.05em;
+}
+
+#secret-overlay .secret-title-red {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: clamp(0.8rem, 1.8vw, 0.98rem);
+  font-weight: 700;
+  color: #ff3c3c;
+  letter-spacing: 0.15em;
+  text-transform: uppercase;
+  margin-bottom: 1.2rem;
+  text-align: center;
+  text-shadow: 0 0 30px rgba(255,60,60,0.8);
+}
 </style>
 </head>
 <body>
@@ -1225,10 +1268,10 @@ header {
   <div class="counter-num">51</div>
   <div class="counter-label">коммитов в Employee_education</div>
 </div>
-    <div class="counter-item">
-      <div class="counter-num">36</div>
-      <div class="counter-label">дней активной разработки</div>
-    </div>
+    <div class="counter-item" id="secret-trigger" onclick="openSecretBudget()" style="cursor:pointer;" title="???">
+  <div class="counter-num">36</div>
+  <div class="counter-label">дней активной разработки</div>
+</div>
     <div class="counter-item">
       <div class="counter-num">07 МАЯ</div>
       <div class="counter-label">первый коммит «Initial commit»</div>
@@ -2109,6 +2152,26 @@ header {
   </div>
 </div>
 
+<!-- SECRET BUDGET OVERLAY -->
+<div id="secret-overlay" style="display:none; position:fixed; inset:0; z-index:9999; background:rgba(0,0,0,0); pointer-events:all;">
+  <div id="secret-dim" style="position:absolute; inset:0; background:#000; opacity:0;"></div>
+  <canvas id="secret-static" style="position:absolute; inset:0; width:100%; height:100%; opacity:0;"></canvas>
+  <div id="secret-content" style="position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; opacity:0;">
+    <p style="font-family:'JetBrains Mono',monospace; font-size:0.62rem; color:rgba(255,60,60,0.55); letter-spacing:0.17em; text-align:center; margin-bottom:0.9rem; text-transform:uppercase;">Бюджет проекта · Гриф: СЕКРЕТНО</p>
+    <div style="display:flex; flex-wrap:wrap; gap:0.7rem; justify-content:center; max-width:660px;">
+      <div class="budget-card">☕<span>20</span><small>литров кофе</small></div>
+      <div class="budget-card">🍫<span>30</span><small>энерг. батончиков</small></div>
+      <div class="budget-card">🍩<span>2</span><small>пончика</small></div>
+      <div class="budget-card">⚡<span>3</span><small>энергетика</small></div>
+      <div class="budget-card">🥩<span>1</span><small>стейк (заслужили)</small></div>
+    </div>
+    <p id="secret-close-hint" style="font-family:'JetBrains Mono',monospace; font-size:0.65rem; color:rgba(255,100,100,0.4); margin-top:2rem; letter-spacing:0.1em;">[ нажми куда угодно чтобы закрыть ]</p>
+  </div>
+  <div id="secret-stamp" style="position:absolute; inset:0; display:flex; align-items:center; justify-content:center; opacity:0; pointer-events:none;">
+  <div style="font-family:'JetBrains Mono',monospace; font-size:clamp(3rem,8vw,6rem); font-weight:700; color:#ff1a1a; letter-spacing:0.14em; text-align:center; line-height:1.15; transform:rotate(-22deg); -webkit-text-stroke:2px #000; text-shadow:0 0 60px rgba(255,0,0,0.9);">СОВЕРШЕННО<br>СЕКРЕТНО</div>
+</div>
+</div>
+
 <script>
 // LIGHTBOX
 function openLightbox(src, title, desc) {
@@ -2426,6 +2489,141 @@ if (verdictBox) {
     verdictBox.style.animation = 'glow-pulse 3s ease-in-out infinite';
   });
 }
+// SECRET BUDGET
+function openSecretBudget() {
+  const overlay = document.getElementById('secret-overlay');
+  const dim = document.getElementById('secret-dim');
+  const staticCv = document.getElementById('secret-static');
+  const content = document.getElementById('secret-content');
+  const stamp = document.getElementById('secret-stamp');
+  
+  overlay.style.display = 'block';
+  
+  // Рисуем статику (эффект включения телевизора)
+  const sCtx = staticCv.getContext('2d');
+  staticCv.width = window.innerWidth;
+  staticCv.height = window.innerHeight;
+  let staticFrames = 0;
+  
+  function drawStatic() {
+    const imageData = sCtx.createImageData(staticCv.width, staticCv.height);
+    for (let i = 0; i < imageData.data.length; i += 4) {
+      const v = Math.random() * 255;
+      imageData.data[i] = v;
+      imageData.data[i+1] = v * 0.3;
+      imageData.data[i+2] = v * 0.3;
+      imageData.data[i+3] = 200;
+    }
+    sCtx.putImageData(imageData, 0, 0);
+    staticFrames++;
+    if (staticFrames < 8) requestAnimationFrame(drawStatic);
+  }
+  
+  // Фаза 1: экран темнеет
+  let dimOpacity = 0;
+  const dimAnim = setInterval(() => {
+    dimOpacity = Math.min(dimOpacity + 0.08, 0.92);
+    dim.style.opacity = dimOpacity;
+    if (dimOpacity >= 0.92) {
+      clearInterval(dimAnim);
+      
+      // Фаза 2: статика (как включение записи)
+      staticCv.style.opacity = '0.85';
+      drawStatic();
+      
+      // Горизонтальные полосы развёртки
+      const scanLines = document.createElement('div');
+      scanLines.style.cssText = `position:absolute;inset:0;background:repeating-linear-gradient(0deg,rgba(255,0,0,0.03) 0px,rgba(255,0,0,0.03) 1px,transparent 1px,transparent 3px);pointer-events:none;z-index:2;`;
+      overlay.appendChild(scanLines);
+      
+      setTimeout(() => {
+        // Фаза 3: статика исчезает, контент появляется
+        staticCv.style.transition = 'opacity 0.4s';
+        staticCv.style.opacity = '0';
+        
+        content.style.transition = 'opacity 0.5s';
+        content.style.opacity = '1';
+        
+        // Гриф появляется
+        setTimeout(() => {
+          stamp.style.transition = 'opacity 0.3s';
+          stamp.style.opacity = '1';
+        }, 300);
+        
+        // Красное мигание экрана
+        let blinks = 0;
+        const blink = setInterval(() => {
+          dim.style.background = blinks % 2 === 0 ? '#1a0000' : '#000';
+          blinks++;
+          if (blinks > 5) {
+            clearInterval(blink);
+            dim.style.background = '#000';
+          }
+        }, 120);
+        
+      }, 500);
+    }
+  }, 20);
+  
+  // Закрытие по клику
+  overlay.onclick = closeSecretBudget;
+}
+
+function closeSecretBudget() {
+  const overlay = document.getElementById('secret-overlay');
+  const dim = document.getElementById('secret-dim');
+  const content = document.getElementById('secret-content');
+  const stamp = document.getElementById('secret-stamp');
+  const staticCv = document.getElementById('secret-static');
+  const sCtx = staticCv.getContext('2d');
+
+  content.style.transition = 'opacity 0.4s ease';
+  content.style.opacity = '0';
+  stamp.style.transition = 'opacity 0.6s ease';
+  stamp.style.opacity = '0';
+
+  setTimeout(() => {
+    staticCv.style.transition = 'none';
+    staticCv.style.opacity = '0.7';
+    let frames = 0;
+    function drawClosingStatic() {
+      const imageData = sCtx.createImageData(staticCv.width, staticCv.height);
+      for (let i = 0; i < imageData.data.length; i += 4) {
+        const v = Math.random() * 255;
+        imageData.data[i] = v;
+        imageData.data[i+1] = v * 0.3;
+        imageData.data[i+2] = v * 0.3;
+        imageData.data[i+3] = 180;
+      }
+      sCtx.putImageData(imageData, 0, 0);
+      frames++;
+      if (frames < 6) requestAnimationFrame(drawClosingStatic);
+    }
+    drawClosingStatic();
+
+    setTimeout(() => {
+      staticCv.style.transition = 'opacity 0.3s';
+      staticCv.style.opacity = '0';
+      dim.style.transition = 'opacity 0.5s';
+      dim.style.opacity = '0';
+
+      setTimeout(() => {
+        overlay.style.display = 'none';
+        content.style.transition = 'none';
+        stamp.style.transition = 'none';
+        stamp.style.opacity = '0';
+        dim.style.transition = 'none';
+        dim.style.opacity = '0';
+        dim.style.background = '#000';
+        overlay.querySelectorAll('div[style*="repeating-linear-gradient"]').forEach(el => el.remove());
+      }, 550);
+    }, 350);
+  }, 600);
+}
 </script>
+
+</body>
+</html>
+
 </body>
 </html>
